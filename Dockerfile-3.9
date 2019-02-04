@@ -1,0 +1,32 @@
+FROM oondeo/alpine:3.9
+
+ENV USER_NAME="sdk"
+USER root
+    # &&  adduser  -G sdk -s /bin/sh -D sdk \
+    # &&  sed "s/1001\:/sdk\:x:1001\:0\:sdk user\:${HOME}\:/bin/sh" /etc/passwd
+    #    &&  echo "1001:sdk" | /usr/sbin/chpasswd 
+RUN apk add --no-cache alpine-sdk \
+    &&  addgroup sdk \
+    &&  sed -i 's/1001\:/sdk\:/' /etc/passwd \
+    &&  echo "sdk  ALL=(ALL) NOPASSWD:SETENV: /bin/apk-keys " >> /etc/sudoers \
+    &&  chmod g+w /var/cache/distfiles/ \
+    &&  addgroup sdk abuild \
+    &&  sed -i 's/sdk\:/1001\:/' /etc/passwd \
+    &&  mkdir -p /opt/app-root/sdk && chown -R 1001:0 /opt/app-root \
+    && chmod 770 /opt/app-root/sdk /opt/app-root/src
+
+
+COPY build /bin/
+COPY apk-keys /bin/
+COPY docker-entrypoint.sh /
+
+
+USER 1001
+WORKDIR /opt/app-root/sdk
+RUN git clone --recursive https://github.com/alpinelinux/aports.git
+WORKDIR /opt/app-root/src
+
+
+
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["/bin/build"]

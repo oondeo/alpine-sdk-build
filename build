@@ -1,6 +1,19 @@
 #! /bin/sh
-cd /tmp/aports/$1/$2
+CHECKSUM=""
+if [ "$1" -eq "-c" ]
+then
+  CHECKSUM="True"
+fi
+if [ -f "/opt/app-root/sdk/aports/$1/$2/APKBUILD" ]; then
+    cd /opt/app-root/sdk/aports/$1/$2
+else
+    cd $1
+fi
 abuild fetch
+if [ "$CHECSUM" == "TRUE" ]
+then 
+    abuild checksum
+fi
 abuild unpack
 abuild deps
 abuild prepare
